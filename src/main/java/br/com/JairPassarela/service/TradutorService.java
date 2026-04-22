@@ -1,4 +1,3 @@
-
 package br.com.JairPassarela.service;
 
 import java.io.BufferedReader;
@@ -11,6 +10,10 @@ public class TradutorService {
 
     public static String obterTraducao(String texto) {
         try {
+            if (texto == null || texto.isEmpty()) {
+                return "";
+            }
+
             String textoCodificado = URLEncoder.encode(texto, "UTF-8");
 
             String urlStr = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=pt&dt=t&q=" + textoCodificado;
@@ -18,9 +21,16 @@ public class TradutorService {
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            int status = conn.getResponseCode();
+            if (status != 200) {
+                return "Erro na tradução (HTTP " + status + ")";
+            }
 
             BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream())
+                    new InputStreamReader(conn.getInputStream(), "UTF-8")
             );
 
             StringBuilder response = new StringBuilder();
@@ -32,12 +42,16 @@ public class TradutorService {
 
             reader.close();
 
-            // Extrai só a tradução
             String resultado = response.toString();
-            return resultado.split("\"")[1];
+
+            if (resultado.contains("\"")) {
+                return resultado.split("\"")[1];
+            }
+
+            return resultado;
 
         } catch (Exception e) {
-            return "Erro ao traduzir: " + e.getMessage();
+            return "Erro ao traduzir";
         }
     }
 }
