@@ -2,12 +2,17 @@ package br.com.JairPassarela.Principal;
 
 import br.com.JairPassarela.model.DadosSerie;
 import br.com.JairPassarela.model.DadosTemporada;
+import br.com.JairPassarela.model.Serie;
+import br.com.JairPassarela.repository.SerieRepository;
 import br.com.JairPassarela.service.ConsumoAPI;
 import br.com.JairPassarela.service.ConverteDados;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Principal {
 
@@ -20,6 +25,15 @@ public class Principal {
     private final String ENDERECO = "https://www.omdbapi.com/?t=";
     private final String API_KEY = "&apikey=5b69fc12";
 
+    private List<DadosSerie> dadosSeries = new ArrayList<>();
+
+
+    private SerieRepository repositorio;
+
+    public Principal(SerieRepository repositorio) {
+        this.repositorio = repositorio;
+    }
+
 
     public void exibeMenu() {
         var opcao = -1;
@@ -27,7 +41,7 @@ public class Principal {
             var menu = """
                     1 - Buscar série
                     2 - Buscar Episódio
-                    
+                    3- Listar séries buscadas
                     0 - Sair
                     
                     """;
@@ -43,6 +57,9 @@ public class Principal {
                 case 2:
                     buscarEpisodioPorSerie();
                     break;
+                case 3:
+                    listarSeriesBuscadas();
+                    break;
                 case 0:
                     System.out.println("Saindo...");
                     break;
@@ -54,6 +71,8 @@ public class Principal {
 
         private void buscarSerieWeb(){
             DadosSerie dados = getDadosSerie();
+            Serie serie = new Serie(dados);
+            repositorio.save(serie);
             System.out.println(dados);
         }
 
@@ -86,5 +105,11 @@ public class Principal {
 
         temporadas.forEach(System.out::println);
     }
-
+    private void listarSeriesBuscadas(){
+        List<Serie> series = repositorio.findAll();
+        series.stream()
+                .sorted(Comparator.comparing(Serie::getGenero))
+                .forEach(System.out::println);
     }
+
+}
