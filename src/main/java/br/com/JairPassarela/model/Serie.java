@@ -1,6 +1,8 @@
 package br.com.JairPassarela.model;
 
+import br.com.JairPassarela.Categoria;
 import br.com.JairPassarela.service.TradutorService;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -18,13 +20,14 @@ public class Serie {
     private String titulo;
     private Integer totalTemporadas;
     private Double avaliacao;
-
-    private String genero; // <-- substitui Categoria
+    @Enumerated(EnumType.STRING)
+    private Categoria genero; // <-- substitui Categoria
     private String atores;
     private String poster;
     private String sinopse;
 
-    @Transient
+    @OneToMany(mappedBy = "serie", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnore
     private List<Episodio> episodios = new ArrayList<>();
 
     public Serie() {}
@@ -34,8 +37,9 @@ public class Serie {
         this.totalTemporadas = dadosSerie.totaLTemporadas();
         this.avaliacao = OptionalDouble.of(Double.valueOf(dadosSerie.avaliacao())).orElse(0);
 
-        // 👇 agora é string simples
-        this.genero = dadosSerie.genero().split(",")[0].trim();
+        this.genero = Categoria.fromString(
+                dadosSerie.genero().split(",")[0].trim()
+        );
 
         this.atores = dadosSerie.atores();
         this.poster = dadosSerie.poster();
@@ -51,6 +55,7 @@ public class Serie {
     }
 
     public void setEpisodios(List<Episodio> episodios) {
+        episodios.forEach(e -> e.setSerie(this));
         this.episodios = episodios;
     }
 
@@ -66,7 +71,7 @@ public class Serie {
         return avaliacao;
     }
 
-    public String getGenero() {
+    public Categoria getGenero() {
         return genero;
     }
 
@@ -91,6 +96,7 @@ public class Serie {
                         ", avaliacao=" + avaliacao +
                         ", atores='" + atores + '\'' +
                         ", poster='" + poster + '\'' +
-                        ", sinopse='" + sinopse + '\'';
+                        ", sinopse='" + sinopse + '\'' +
+                        ", episodios='" + episodios + '\'';
     }
 }
