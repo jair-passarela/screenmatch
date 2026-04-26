@@ -1,5 +1,6 @@
 package br.com.JairPassarela.controller;
 
+import br.com.JairPassarela.Categoria;
 import br.com.JairPassarela.model.DadosSerie;
 import br.com.JairPassarela.model.DadosTemporada;
 import br.com.JairPassarela.model.Episodio;
@@ -44,6 +45,7 @@ public class SerieController {
         return List.of();
     }
 
+
     @GetMapping("/top5")
     public List<Serie> obterTop5() {
         return repositorio.findTop5ByOrderByAvaliacaoDesc();
@@ -52,6 +54,17 @@ public class SerieController {
     @GetMapping("/busca")
     public List<Serie> buscarPorTitulo(@RequestParam String titulo) {
         return repositorio.findAllByTituloContainingIgnoreCase(titulo);
+    }
+
+    // GET /series/genero?genero=ACAO → filtra por gênero
+    @GetMapping("/genero")
+    public List<Serie> buscarPorGenero(@RequestParam String genero) {
+        try {
+            Categoria categoria = Categoria.fromPortugues(genero);
+            return repositorio.findByGenero(categoria);
+        } catch (IllegalArgumentException e) {
+            return List.of();
+        }
     }
 
     @PostMapping("/cadastrar")
@@ -87,7 +100,7 @@ public class SerieController {
 
         serie.setEpisodios(episodios);
         repositorio.save(serie);
-
         return serie;
+
     }
 }
