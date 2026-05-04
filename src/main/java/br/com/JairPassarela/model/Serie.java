@@ -34,7 +34,11 @@ public class Serie {
 
     public Serie(DadosSerie dadosSerie){
         this.titulo = dadosSerie.titulo();
-        this.totalTemporadas = dadosSerie.totaLTemporadas();
+        try {
+            this.totalTemporadas = Integer.valueOf(dadosSerie.totaLTemporadas());
+        } catch (NumberFormatException e) {
+            this.totalTemporadas = 0;
+        }
         this.avaliacao = OptionalDouble.of(Double.valueOf(dadosSerie.avaliacao())).orElse(0);
 
         this.genero = Categoria.fromString(
